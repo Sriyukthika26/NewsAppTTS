@@ -1,6 +1,15 @@
 # News Text-to-Speech with Chirp3 HD Kore Voices
 
-This application uses Google Cloud Text-to-Speech API with Chirp3 HD Kore voices to generate high-quality speech for news content in Indian languages.
+This application uses Google Cloud Text-to-Speech API to generate high-quality speech for news content in 9 Indian languages.
+
+## Voice Selection
+
+The application uses Chirp3 HD Kore voices for all languages, as they provide the highest quality speech output. The voice name format is:
+```
+{language_code}-Chirp3-HD-Kore
+```
+
+For example: `en-IN-Chirp3-HD-Kore`, `hi-IN-Chirp3-HD-Kore`, etc.
 
 ## Prerequisites
 
@@ -52,14 +61,6 @@ The application supports the following Indian languages:
 - Tamil
 - Malayalam
 
-## Voice Selection
-
-The application uses Chirp3 HD Kore voices for all languages, as they provide the highest quality speech output. The voice name format is:
-```
-{language_code}-Chirp3-HD-Kore
-```
-
-For example: `en-IN-Chirp3-HD-Kore`, `hi-IN-Chirp3-HD-Kore`, etc.
 
 ## Output Files
 

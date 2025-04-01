@@ -1,4 +1,5 @@
 import os
+import json
 from google.cloud import texttospeech
 from google.oauth2 import service_account
 
@@ -8,15 +9,15 @@ credentials = service_account.Credentials.from_service_account_file(credentials_
 
 # Map of Indian languages with their codes
 INDIAN_LANGUAGES = {
-    "en-IN": "English_Indian",
-    "hi-IN": "Hindi",
-    "mr-IN": "Marathi",
-    "gu-IN": "Gujarati",
-    "te-IN": "Telugu",
-    "kn-IN": "Kannada",
-    "bn-IN": "Bengali",
-    "ta-IN": "Tamil",
-    "ml-IN": "Malayalam"
+    "en": "English_Indian",
+    "hi": "Hindi",
+    "mr": "Marathi",
+    "gu": "Gujarati",
+    "te": "Telugu",
+    "kn": "Kannada",
+    "bn": "Bengali",
+    "ta": "Tamil",
+    "ml": "Malayalam"
 }
 
 def create_output_directory():
@@ -66,23 +67,30 @@ def synthesize_speech(text, language_code, output_file):
         print(f"Error generating speech: {e}")
         return False
 
-def generate_speech(text, language_code):
-    """Generate speech file in the appropriate language directory."""
+def process_json_file(data):
+    """Process a JSON dictionary and generate speech for the given headline and summary."""
+    if not isinstance(data, dict):
+        print("Error: Expected a dictionary but got something else.")
+        return False
+    
+    text = f"{data.get('headline', '')}. {data.get('summary', '')}".strip()
+    language_code = data.get("language", "en") + "-IN"
+    
+    if language_code[:2] not in INDIAN_LANGUAGES:
+        print(f"Error: Language '{language_code}' not supported.")
+        return False
+    
     # Make sure output directories exist
     create_output_directory()
     
     # Get the directory name for this language
-    lang_dir = INDIAN_LANGUAGES.get(language_code)
-    if not lang_dir:
-        print(f"Language code {language_code} not supported")
-        return False
+    lang_dir = INDIAN_LANGUAGES[language_code[:2]]
     
-    # Create safe filename from text
-    safe_text = "".join(c if c.isalnum() or c in " _-" else "_" for c in text[:30])
+    # Create a safe filename from the headline
+    safe_text = "".join(c if c.isalnum() or c in " _-" else "_" for c in data.get("headline", "news")[:30])
     safe_text = safe_text.strip().replace(" ", "_")
     
-    # Create output path in language directory
+    # Create output path in the language directory
     output_file = os.path.join("output", lang_dir, f"{safe_text}.mp3")
     
-    # Generate the speech
-    return synthesize_speech(text, language_code, output_file) 
+    return synthesize_speech(text, language_code, output_file)

@@ -1,59 +1,32 @@
-import os
-from tts import generate_speech, INDIAN_LANGUAGES
+import json
+from tts import process_json_file
 
 def main():
-    """Simple TTS generator for news content."""
+    """Simple TTS generator that processes a JSON file."""
     print("News Text-to-Speech Generator")
-    print("============================")
+    print("================================\n")
     
-    # Show language options
-    print("\nAvailable Languages:")
-    language_mapping = []
-    for i, (code, name) in enumerate(INDIAN_LANGUAGES.items(), 1):
-        print(f"{i}. {name.replace('_', ' ')}")
-        language_mapping.append((code, name))
+    json_file_path = "news_data.json"  # Update with actual JSON file path
+
+    # Load JSON data
+    try:
+        with open(json_file_path, "r", encoding="utf-8") as file:
+            data = json.load(file)
+    except FileNotFoundError:
+        print(f"Error: JSON file '{json_file_path}' not found.")
+        return
+    except json.JSONDecodeError:
+        print(f"Error: JSON file '{json_file_path}' is not valid JSON.")
+        return
     
-    while True:
-        # Get language selection
-        try:
-            selection = input("\nSelect language (number) or 'q' to quit: ")
-            
-            if selection.lower() == 'q':
-                print("Exiting...")
-                break
-            
-            lang_index = int(selection) - 1
-            if 0 <= lang_index < len(language_mapping):
-                language_code = language_mapping[lang_index][0]
-                language_name = language_mapping[lang_index][1].replace('_', ' ')
-            else:
-                print("Invalid selection. Please try again.")
-                continue
-        except ValueError:
-            print("Invalid input. Please enter a number or 'q'.")
-            continue
-        
-        # Get text to convert
-        text = input(f"\nEnter news text to convert to speech in {language_name}: ")
-        
-        if not text.strip():
-            print("Text cannot be empty. Please try again.")
-            continue
-        
-        # Generate speech
-        print(f"\nGenerating speech in {language_name}...")
-        success = generate_speech(text, language_code)
-        
-        if success:
-            print("Speech generated successfully!")
-        else:
-            print("Failed to generate speech. Please try again.")
-        
-        # Ask to generate another file
-        another = input("\nGenerate another audio file? (y/n): ")
-        if another.lower() != 'y':
-            print("Exiting...")
-            break
+    # Process the loaded JSON dictionary
+    print(f"\nProcessing article: {data.get('headline', 'Unknown headline')}...")
+    success = process_json_file(data)
+    
+    if success:
+        print("Speech generated successfully!")
+    else:
+        print("Failed to generate speech.")
 
 if __name__ == "__main__":
-    main() 
+    main()

@@ -39,13 +39,11 @@ python simple_tts.py
 ```
 
 The application will:
-1. Display a list of supported Indian languages
-2. Ask you to select a language by entering its number
-3. Prompt you to enter news text in that language
-4. Use the Chirp3 HD Kore voice for the selected language
-5. Generate the audio and save it in a language-specific directory
+1. Takes news summary and headline from the input kson file.
+2. Combines headlines and summary together and generates the speech.
+3. Use the Chirp3 HD Kore voice for the lspecified language.
+4. Generate the audio and save it in a language-specific directory
    (e.g., `output/Hindi/your_text.mp3`)
-6. Ask if you want to generate another audio file
 
 ## Supported Languages
 

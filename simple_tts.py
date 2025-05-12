@@ -6,7 +6,7 @@ def main():
     print("News Text-to-Speech Generator")
     print("================================\n")
     
-    json_file_path = "news_data.json"  # Update with actual JSON file path
+    json_file_path = "news_data.json" 
 
     # Load JSON data
     try:

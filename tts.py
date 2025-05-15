@@ -1,19 +1,30 @@
 import os
+from dotenv import load_dotenv
 from google.cloud import texttospeech
 from google.oauth2 import service_account
 from elevenlabs import ElevenLabs
+import asyncio
+import aiofiles
+from openai import AsyncOpenAI
 
+# Load environment variables from .env file
+load_dotenv()
+
+openai_client = AsyncOpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 # Set credentials path directly
-credentials_path = r"C:\Users\SRINIVAS\Downloads\awesome-aspect-455006-b6-e45e9e01c19e.json"
+credentials_path = r"C:\Users\SRINIVAS\Downloads\awesome-aspect-455006-b6-66b76a86c2f4.json"
 credentials = service_account.Credentials.from_service_account_file(credentials_path)
 
-elevenlabs_api_key = "your_elevenlabs_api_key"
+elevenlabs_api_key = os.getenv("ELEVENLABS_API_KEY")
 eleven_client = ElevenLabs(api_key=elevenlabs_api_key)
 eleven_voice_ids = {
-    "en": "your_english_voice_id",
-    "hi": "your_hindi_voice_id"
+    "hi": "ZwQHtywpqvyA1yLc1eEd",
+    "ta": "Q9XUbaP7Z0Az8OW9CyRg",
 }
-
+OPENAI_SUPPORTED_LANGUAGES = {
+    "kn": "onyx",
+    "te": "nova"
+}
 # Map of Indian languages with their codes
 INDIAN_LANGUAGES = {
     "en": "English_Indian",
@@ -38,13 +49,37 @@ def create_output_directory():
         if not os.path.exists(dir_path):
             os.makedirs(dir_path)
 
+async def synthesize_with_openai(text, voice_name, output_file):
+    try:
+        async with openai_client.audio.speech.with_streaming_response.create(
+            model="gpt-4o-mini-tts",
+            voice=voice_name,
+            input=text,
+            instructions="Speak in a clear and natural tone.",
+            response_format="mp3",
+        ) as response:
+            async with aiofiles.open(output_file, 'wb') as f:
+                async for chunk in response.iter_bytes():
+                    await f.write(chunk)
+
+        print(f"OpenAI voice audio saved: {output_file}")
+        return True
+    except Exception as e:
+        print(f"OpenAI TTS error: {e}")
+        return False
+    
 def synthesize_with_google(text, language_code, output_file):
     """Synthesize speech from text using Chirp3 HD Kore voice."""
     try:
         client = texttospeech.TextToSpeechClient(credentials=credentials)
         
         # Get the Chirp3 HD Kore voice for this language
-        voice_name = f"{language_code}-Chirp3-HD-Kore"
+        if(language_code == "mr-IN"):
+            voice_name = f"{language_code}-Chirp3-HD-Algieba"
+        elif(language_code == "en-IN") : voice_name = f"{language_code}-Chirp3-HD-Achernar"
+        elif(language_code == "gu-IN") : voice_name = f"{language_code}-Chirp3-HD-Iapetus"
+        elif(language_code == "bn-IN") : voice_name = f"{language_code}-Chirp3-HD-Rasalgethi"
+        else: voice_name = f"{language_code}-Chirp3-HD-Kore"
         
         synthesis_input = texttospeech.SynthesisInput(text=text)
         
@@ -125,7 +160,10 @@ def process_json_file(data):
     output_file = os.path.join("output", lang_dir, f"{safe_text}.mp3")
     full_language_code = f"{language_code}-IN"
     
-    if language_code in eleven_voice_ids:
+    if language_code in OPENAI_SUPPORTED_LANGUAGES:
+        voice_name = OPENAI_SUPPORTED_LANGUAGES[language_code]
+        return asyncio.run(synthesize_with_openai(text, voice_name, output_file))
+    elif language_code in eleven_voice_ids:
         return synthesize_with_elevenlabs(text, language_code, output_file)
     else:
         return synthesize_with_google(text, full_language_code, output_file)
